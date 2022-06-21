@@ -46,16 +46,16 @@ Make sure to have the right path and file names before running these codes. The 
 
 For the packages installation, nothing more than having the proper dependencies listed in [DEP.md](DEP.md) is needed. To make life easier, and so that the "using" commands works, you need to add the path of each package in the LOAD_PATH variable. To do so, you need to edit the startup.jl file (which might be located at "~/.julia/config/startup.jl") and add the command:
 
-  push!(LOAD_PATH,"/path/to/pkg/pkg.jl/src/")
+> push!(LOAD_PATH,"/path/to/pkg/pkg.jl/src/")
 
 with the proper path to the package source folder (i.e. the src/ folder of the developed packages). In earlier version of Julia, the startup file may not exists, but instead, the juliarc.jl file does; it has a similar purpose. One might find the file using the command locate startup.jl which list all the instance of files and folder containing the string "startup.jl".
 
 For Windows installations, it can happen that the config folder does not exist, so what you can do is to create a config folder in the julia folder (where julia is installed) and in the config folder, create a startup.jl file and populate it with the appropriate command that needs to be executed when starting up Julia.
 For the LOAD_PATH variable you should add in the file:
 
-push!(LOAD_PATH,"C:\\\\path\\\\to\\\\package\\\\name1.jl\\\\src\\\\")
-
-push!(LOAD_PATH,"C:\\\\path\\\\to\\\\package\\\\name2.jl\\\\src\\\\")
+> push!(LOAD_PATH,"C:\\\\path\\\\to\\\\package\\\\name1.jl\\\\src\\\\")
+>
+> push!(LOAD_PATH,"C:\\\\path\\\\to\\\\package\\\\name2.jl\\\\src\\\\")
 
 using backslashes instead of forward slashes, where you should modify the string "C:\\\\path\\\\to\\\\package\\\\name[12].jl\\\\src\\\\" so that it points to the location of the sources of the local package.
 
