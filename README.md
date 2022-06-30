@@ -68,3 +68,6 @@ For the proof of concept, you may look into [1] where the focus is set on develo
 - [2] M. Ozon et al., Aerosol formation and growth rates from chamber experiments using Kalman smoothing, ACP, 2021, Vol. 21, p. 12595–12611, [DOI: 10.5194/acp-21-12595-2021](https://www.doi.org/10.5194/acp-21-12595-2021)
 - [3] D. Stolzenburg et al., Combining instrument inversions for sub-10 nm aerosol number size-distribution measurements, JAS, Vol. 159, p. 105862, [DOI: 10.1016/j.jaerosci.2021.105862](https://doi.org/10.1016/j.jaerosci.2021.105862)
 - [4] M. Ozon, D. Stolzenburg and L. Dada, BAYROSOL1.1 [DOI: 10.5281/zenodo.4450492](https://doi.org/10.5281/zenodo.4450492)
+
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4450492.svg)](https://doi.org/10.5281/zenodo.4450492)
