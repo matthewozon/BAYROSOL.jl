@@ -32,8 +32,8 @@ idx_time = [1; round(Int64,n_samp/6); round(Int64,2n_samp/6); round(Int64,3n_sam
 
 
 # size distribution
-maxPSD = maximum(1.0e-9y_all./delta)
-minPSD = max(0.001*maxPSD,1.0e-9minimum(y_all./delta))
+maxPSD = maximum(1.0e-9y_all./delta) 
+minPSD = max(0.001*maxPSD,1.0e-9minimum(1.0e-9y_all./delta))
 maxPSDlog = maximum(y_all./log10(cst_r))
 minPSDlog = max(0.001*maxPSDlog,minimum(y_all./log10(cst_r)))
 
@@ -69,6 +69,11 @@ if GT_loaded
     minPSD = max(0.001maxPSD,minimum(PSD_simu))
     maxPSDlog = maximum(1.0e9*PSD_simu.*delta_p/log10(cst_r_p))
     minPSDlog = max(0.001maxPSDlog,minimum(1.0e9PSD_simu.*delta_p/log10(cst_r_p)))
+else
+    maxPSD = maximum(1.0e-9x0*x_smo_all[R_psd,:]./delta) # maximum(1.0e-9y_all./delta) 
+    minPSD = max(0.001*maxPSD,1.0e-9minimum(1.0e-9x0*x_smo_all[R_psd,:]./delta))
+    maxPSDlog = x0*maximum(x_smo_all[R_psd,:]./log10(cst_r)) # maximum(y_all./log10(cst_r))
+    minPSDlog = max(0.001*maxPSDlog,minimum(x0*x_smo_all[R_psd,:]./log10(cst_r)))
 end
 
 
@@ -200,8 +205,13 @@ close("all")
 
 titleCond = "condensation rate"
 cblabelCond = "growth rate [m s\$^{-1}\$]"
-minCond = max(5.0e-14,minimum(condensation_rate_all)) # max(1.0e-14,minimum(GR0*CGR(x_fil_all[R_cond,:]))) # max(1.0e-14,minimum(GR0*CGR(x_smo_all[R_cond,:])))
-maxCond = maximum(condensation_rate_all)              # maximum(GR0*CGR(x_fil_all[R_cond,:])) # maximum(GR0*CGR(x_smo_all[R_cond,:]))
+if GT_loaded
+    minCond = max(5.0e-14,minimum(condensation_rate_all)) # max(1.0e-14,minimum(GR0*CGR(x_fil_all[R_cond,:]))) # max(1.0e-14,minimum(GR0*CGR(x_smo_all[R_cond,:])))
+    maxCond = maximum(condensation_rate_all)              # maximum(GR0*CGR(x_fil_all[R_cond,:])) # maximum(GR0*CGR(x_smo_all[R_cond,:]))
+else
+    minCond,maxCond = extrema([GR0*CGR2D(x_fil_all[R_cond,:]); GR0*CGR2D(x_smo_all[R_cond,:])])
+    minCond = max(5.0e-14,minCond) 
+end
 displayLogData2D(123,t_samp/3600.0,1.0e9diameter,GR0*CGR2D(x_fil_all[R_cond,:]),minCond,maxCond,_title=titleCond,_colorbar_label=cblabelCond)
 ylabel("diameter [nm]")
 savefig(string(folder,"cond_fil.png"))
@@ -216,56 +226,60 @@ savefig(string(folder,"cond_smo.pdf"))
 if SAVE_PGF
     savefig(string(folder,"cond_smo.pgf"))
 end
-displayLogData2D(789,tp,1.0e9dp,condensation_rate_all,minCond,maxCond,_title=titleCond,_colorbar_label=cblabelCond)
-ylabel("diameter [nm]")
-savefig(string(folder,"cond_gt.png"))
-savefig(string(folder,"cond_gt.pdf"))
-# if SAVE_PGF
-#     savefig(string(folder,"cond_gt.pgf"))
-# end
-minCond = 1.0e-1
-maxCond = 1.0
-displayLogData2D(753,tp,1.0e9dp,abs.(GR0*CGR2D(x_smo_all[R_cond,:])-condensation_rate_all)./condensation_rate_all,minCond,maxCond,_title=titleCond,_colorbar_label="relative error")
-ylabel("diameter [nm]")
-savefig(string(folder,"cond_relative_error_smo.png"))
-savefig(string(folder,"cond_relative_error_smo.pdf"))
-if SAVE_PGF
-    savefig(string(folder,"cond_relative_error_smo.pgf"))
-end
-displayLogData2D(754,tp,1.0e9dp,abs.(GR0*CGR2D(x_fil_all[R_cond,:])-condensation_rate_all)./condensation_rate_all,minCond,maxCond,_title=titleCond,_colorbar_label="relative error")
-ylabel("diameter [nm]")
-savefig(string(folder,"cond_relative_error_fil.png"))
-savefig(string(folder,"cond_relative_error_fil.pdf"))
-if SAVE_PGF
-    savefig(string(folder,"cond_relative_error_fil.pgf"))
+if GT_loaded
+    displayLogData2D(789,tp,1.0e9dp,condensation_rate_all,minCond,maxCond,_title=titleCond,_colorbar_label=cblabelCond)
+    ylabel("diameter [nm]")
+    savefig(string(folder,"cond_gt.png"))
+    savefig(string(folder,"cond_gt.pdf"))
+    # if SAVE_PGF
+    #     savefig(string(folder,"cond_gt.pgf"))
+    # end
+
+    minCond = 1.0e-1
+    maxCond = 1.0
+    displayLogData2D(753,tp,1.0e9dp,abs.(GR0*CGR2D(x_smo_all[R_cond,:])-condensation_rate_all)./condensation_rate_all,minCond,maxCond,_title=titleCond,_colorbar_label="relative error")
+    ylabel("diameter [nm]")
+    savefig(string(folder,"cond_relative_error_smo.png"))
+    savefig(string(folder,"cond_relative_error_smo.pdf"))
+    if SAVE_PGF
+        savefig(string(folder,"cond_relative_error_smo.pgf"))
+    end
+    displayLogData2D(754,tp,1.0e9dp,abs.(GR0*CGR2D(x_fil_all[R_cond,:])-condensation_rate_all)./condensation_rate_all,minCond,maxCond,_title=titleCond,_colorbar_label="relative error")
+    ylabel("diameter [nm]")
+    savefig(string(folder,"cond_relative_error_fil.png"))
+    savefig(string(folder,"cond_relative_error_fil.pdf"))
+    if SAVE_PGF
+        savefig(string(folder,"cond_relative_error_fil.pgf"))
+    end
 end
 close("all")
 
 
 
 
-
-figure(1043)
-plot(tp,nucleation_rate_all)
-s = @sprintf "nucleation rate"
-title(s)
-xlabel("time [h]")
-ylabel("nucleation rate [cm\$^{-3}\$ s\$^{-1}\$]")
-grid(true,which="major",ls="-")
-grid(true,which="minor",ls="-",alpha=0.5)
-xlim(t_samp[1]/3600.0,t_samp[end]/3600.0)
-savefig(string(folder,"nucleation_rate.png"))
-savefig(string(folder,"nucleation_rate.pdf"))
-if SAVE_PGF
-    savefig(string(folder,"nucleation_rate.pgf"))
+if GT_loaded
+    figure(1043)
+    plot(tp,nucleation_rate_all)
+    s = @sprintf "nucleation rate"
+    title(s)
+    xlabel("time [h]")
+    ylabel("nucleation rate [cm\$^{-3}\$ s\$^{-1}\$]")
+    grid(true,which="major",ls="-")
+    grid(true,which="minor",ls="-",alpha=0.5)
+    xlim(t_samp[1]/3600.0,t_samp[end]/3600.0)
+    savefig(string(folder,"nucleation_rate.png"))
+    savefig(string(folder,"nucleation_rate.pdf"))
+    if SAVE_PGF
+        savefig(string(folder,"nucleation_rate.pgf"))
+    end
 end
 
 
 
 
-
 figure(1000)
-loglog(dp*10.0^9,wall_rate_expected)
+# loglog(dp*10.0^9,wall_rate_expected)
+loglog(1.0e9diameter,wall_rate_expected)
 s = @sprintf "wall loss rate"
 title(s)
 xlabel("diameter [nm]")
@@ -317,10 +331,12 @@ for k in 1:length(idx_time)
     figure(k)
     semilogx(1.0e9diameter,GR0*CGR(x_fil_all[R_cond,idx_time[k]])) # semilogx # loglog
     semilogx(1.0e9diameter,GR0*CGR(x_smo_all[R_cond,idx_time[k]])) # semilogx # loglog
-    semilogx(1.0e9dp,condensation_rate_all[:,idx_time[k]],color=:green)         # semilogx # loglog
+    if GT_loaded
+        semilogx(1.0e9dp,condensation_rate_all[:,idx_time[k]],color=:green)         # semilogx # loglog
+    end
     fill_between(1.0e9diameter,GR0*percentiles_cond_fil[:,idx_time[k],1],GR0*percentiles_cond_fil[:,idx_time[k],2],alpha=0.5,color=:blue)
     fill_between(1.0e9diameter,GR0*percentiles_cond_smo[:,idx_time[k],1],GR0*percentiles_cond_smo[:,idx_time[k],2],alpha=0.5,color=:orange)
-    s = @sprintf "growth rate at %ih%imin" floor(Int64,idx_time[k]*dt/3600.0) floor(Int64,60.0*(idx_time[k]*dt/3600.0-floor(Int64,idx_time[k]*dt/3600.0)))
+    local s = @sprintf "growth rate at %ih%imin" floor(Int64,idx_time[k]*dt/3600.0) floor(Int64,60.0*(idx_time[k]*dt/3600.0-floor(Int64,idx_time[k]*dt/3600.0)))
     title(s)
     xlabel("diameter [nm]")
     ylabel("growth rate [m s\$^{-1}\$]")
@@ -328,7 +344,11 @@ for k in 1:length(idx_time)
     grid(true,which="minor",ls="-",alpha=0.5)
     xlim(1.0e9diameter[1],1.0e9diameter[end])
     ylim(0.0,2.5e-12)
-    legend(["filter","smoother", "ground truth", "EKS uncertainty", "FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter","smoother", "ground truth", "EKS uncertainty", "FIKS uncertainty"])
+    else
+        legend(["filter","smoother", "EKS uncertainty", "FIKS uncertainty"])
+    end
     s = @sprintf "cond_wrt_diameter_time_%i.png" idx_time[k]
     savefig(string(folder,s))
     s = @sprintf "cond_wrt_diameter_time_%i.pdf" idx_time[k]
@@ -342,7 +362,7 @@ for k in 1:length(idx_time)
     figure(1000+k)
     loglog(diameter*10.0^9,gamma0*wall_rate(x_fil_all[R_loss,idx_time[k]])) # wall_rate_fil_last)
     loglog(diameter*10.0^9,gamma0*wall_rate(x_smo_all[R_loss,idx_time[k]]))
-    loglog(dp*10.0^9,wall_rate_expected,color=:green)
+    loglog(diameter*10.0^9,wall_rate_expected,color=:green)
     fill_between(diameter*10.0^9,gamma0*percentiles_wall_fil[:,idx_time[k],1],gamma0*percentiles_wall_fil[:,idx_time[k],2],alpha=0.5,color=:blue)
     fill_between(diameter*10.0^9,gamma0*percentiles_wall_smo[:,idx_time[k],1],gamma0*percentiles_wall_smo[:,idx_time[k],2],alpha=0.5,color=:orange)
     s = @sprintf "wall loss at %ih%imin" floor(Int64,idx_time[k]*dt/3600.0) floor(Int64,60.0*(idx_time[k]*dt/3600.0-floor(Int64,idx_time[k]*dt/3600.0)))
@@ -385,11 +405,17 @@ close("all")
 figure(1043)
 plot(t_samp/3600.0,J0*Nucleation_rate(x_fil_all[R_nuc_init,:]))
 plot(t_samp/3600.0,J0*Nucleation_rate(x_smo_all[R_nuc_init,:]))
-plot(tp,nucleation_rate_all,color=:green)
+if GT_loaded
+    plot(tp,nucleation_rate_all,color=:green)
+end
 fill_between(t_samp/3600.0,J0*percentiles_nuc_fil[:,1],J0*percentiles_nuc_fil[:,2],alpha=0.5,color=:blue)
 fill_between(t_samp/3600.0,J0*percentiles_nuc_smo[:,1],J0*percentiles_nuc_smo[:,2],alpha=0.5,color=:orange)
 # legend(["filter","smoother", "ground truth"])
-legend(["filter", "smoother", "ground truth", "EKF uncertainty", "FIKS uncertainty"])
+if GT_loaded
+    legend(["filter", "smoother", "ground truth", "EKF uncertainty", "FIKS uncertainty"])
+else
+    legend(["filter", "smoother", "EKF uncertainty", "FIKS uncertainty"])
+end
 s = @sprintf "evolution of the nucleation rates"
 title(s)
 xlabel("time [h]")
@@ -415,7 +441,9 @@ idx_ttt_simu = 31
     semilogx(1.0e9diameter,1.0e-9x0*x_fil_all[R_psd,idx_ttt]./delta)
     semilogx(1.0e9diameter,1.0e-9x0*x_smo_all[R_psd,idx_ttt]./delta)
     # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-    semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    if GT_loaded
+        semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    end
     x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -431,7 +459,11 @@ idx_ttt_simu = 31
     xlabel("diameter [nm]")
     ylabel("density [cm\$^{-3}\$ nm\$^{-1}\$]")
     title("size distribution at time: 1h")
-    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    else
+        legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+    end
     savefig(string(folder,"size_density_time_1h_smo.png"))
     savefig(string(folder,"size_density_time_1h_smo.pdf"))
     if SAVE_PGF
@@ -445,7 +477,9 @@ figure()
 semilogx(1.0e9diameter,x0*x_fil_all[R_psd,idx_ttt]./log10(cst_r))
 semilogx(1.0e9diameter,x0*x_smo_all[R_psd,idx_ttt]./log10(cst_r))
 # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+if GT_loaded
+    semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+end
 x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -461,7 +495,11 @@ ylim(-200.0)
 xlabel("diameter [nm]")
 ylabel("density [\$\\frac{\\mathrm{d} N}{\\mathrm{d} \\log_{10}(D_p)}\$]")
 title("size distribution at time: 1h")
-legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"log_size_density_time_1h_smo.png"))
 savefig(string(folder,"log_size_density_time_1h_smo.pdf"))
 if SAVE_PGF
@@ -482,7 +520,9 @@ idx_ttt_simu = 46
     semilogx(1.0e9diameter,1.0e-9x0*x_fil_all[R_psd,idx_ttt]./delta)
     semilogx(1.0e9diameter,1.0e-9x0*x_smo_all[R_psd,idx_ttt]./delta)
     # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-    semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    if GT_loaded
+        semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    end
     x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -498,7 +538,11 @@ idx_ttt_simu = 46
     xlabel("diameter [nm]")
     ylabel("density [cm\$^{-3}\$ nm\$^{-1}\$]")
     title("size deistribution at time: 1h30min")
-    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    else
+        legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+    end
     savefig(string(folder,"size_density_time_1h30min_smo.png"))
     savefig(string(folder,"size_density_time_1h30min_smo.pdf"))
     if SAVE_PGF
@@ -512,7 +556,9 @@ figure()
 semilogx(1.0e9diameter,x0*x_fil_all[R_psd,idx_ttt]./log10(cst_r))
 semilogx(1.0e9diameter,x0*x_smo_all[R_psd,idx_ttt]./log10(cst_r))
 # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+if GT_loaded
+    semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+end
 x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -528,7 +574,11 @@ ylim(-200.0)
 xlabel("diameter [nm]")
 ylabel("density [\$\\frac{\\mathrm{d} N}{\\mathrm{d} \\log_{10}(D_p)}\$]")
 title("size distribution at time: 1h30min")
-legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"log_size_density_time_1h30min_smo.png"))
 savefig(string(folder,"log_size_density_time_1h30min_smo.pdf"))
 if SAVE_PGF
@@ -551,7 +601,9 @@ idx_ttt_simu = 61
     semilogx(1.0e9diameter,1.0e-9x0*x_fil_all[R_psd,idx_ttt]./delta)
     semilogx(1.0e9diameter,1.0e-9x0*x_smo_all[R_psd,idx_ttt]./delta)
     # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-    semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    if GT_loaded
+        semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    end
     x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -567,7 +619,11 @@ idx_ttt_simu = 61
     xlabel("diameter [nm]")
     ylabel("density [cm\$^{-3}\$ nm\$^{-1}\$]")
     title("size distribution at time: 2h")
-    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    else
+        legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+    end
     savefig(string(folder,"size_density_time_2h_smo.png"))
     savefig(string(folder,"size_density_time_2h_smo.pdf"))
     if SAVE_PGF
@@ -581,7 +637,9 @@ figure()
 semilogx(1.0e9diameter,x0*x_fil_all[R_psd,idx_ttt]./log10(cst_r))
 semilogx(1.0e9diameter,x0*x_smo_all[R_psd,idx_ttt]./log10(cst_r))
 # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+if GT_loaded
+    semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+end
 x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -597,7 +655,11 @@ ylim(-200.0)
 xlabel("diameter [nm]")
 ylabel("density [\$\\frac{\\mathrm{d} N}{\\mathrm{d} \\log_{10}(D_p)}\$]")
 title("size distribution at time: 2h")
-legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"log_size_density_time_2h_smo.png"))
 savefig(string(folder,"log_size_density_time_2h_smo.pdf"))
 if SAVE_PGF

@@ -24,17 +24,6 @@
 
 using PyPlot
 # set the font in the plots
-# PyPlot.matplotlib.rcParams["font.family"]="serif"
-# rc("font", family="serif")
-# PyPlot.matplotlib.rcParams["mathtext.fontset"]="Computer Modern Roman"
-# rc("font", serif="Computer Modern Roman")
-# PyPlot.matplotlib.rcParams["text.usetex"]
-# fm = matplotlib.font_manager.json_load("/path/to/fontlist-v300.json")
-# fm.findfont("serif", rebuild_if_missing=False)
-# fm.findfont("serif", fontext="afm", rebuild_if_missing=False)
-fm = PyPlot.matplotlib.font_manager.json_load("/home/user_name/.cache/matplotlib/fontlist-v310.json")
-fm.findfont("serif", rebuild_if_missing=false)
-fm.findfont("serif", fontext="afm", rebuild_if_missing=false)
 rc("font",family="serif",serif="Computer Modern Roman")
 rc("text", usetex=true)
 using myPlot
@@ -42,39 +31,19 @@ using CSV
 using Printf
 using LinearAlgebra
 using Statistics
+using DataFrames
 
 ##################################################
 ###    read data and init some variables       ###
 ##################################################
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins/steady_state_CPC_1_cm3/boundary/wall/60s/" # used in the paper, but not the best example
-# V_cm3_sample = 1.0
 
+# used for the evolution model
 COAGULATION = true;
-COAGULATION_GAIN = true
-# the nucleation rate is too small compared to what happens in chamber experiments (J~0.1 # cm^{-3} s^{-1})
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins/steady_state_CPC_2_cm3/boundary/wall/120s/"
-# V_cm3_sample = 2.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins/steady_state_CPC_20_cm3/boundary/wall/120s/"
-# V_cm3_sample = 20.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins/steady_state_CPC_199_cm3/boundary/no_wall/120s/"
-# V_cm3_sample = 200.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins/steady_state_CPC_199_cm3/boundary/wall/120s/"
-# V_cm3_sample = 200.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins/steady_state_CPC_2000_cm3/boundary/wall/120s/"
-# V_cm3_sample = 2000.0
-
-# stronger nucleation, in the range of actual chamber experiments (J~5.0 # cm^{-3} s^{-1})
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins_J_5/steady_state_CPC_2_cm3/boundary/wall/120s/"
-# V_cm3_sample = 2.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins_J_5/steady_state_CPC_20_cm3/boundary/wall/120s/"
-# V_cm3_sample = 20.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
-# V_cm3_sample = 200.0
-# input_folder = "/home/user_name/Data/generator2/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/"
-# V_cm3_sample = 2000.0
+COAGULATION_GAIN = (true & COAGULATION)
 
 # data with a different measurement model
 LOAD_MEAS_MOD = true
+GT_loaded = false #WARNING need more memory for this!!!
 # input_folder = "/home/user_name/Data/steady_state_SMPS3936/no_coagulation/singlecharge/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/"
 # folder = "no_coagulation/singlecharge/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/"
 # V_cm3_sample = 2000.0
@@ -130,13 +99,18 @@ V_cm3_sample = 200.0
 # ##WARNING: defining a threshold number concentration to account for the measurement model errors, the stochasticity not steming from the counting process
 x0_dmps = 100.0 # 100.0 # 1000.0 # 10000.0 # for the case of bad error modelling
 
-SAVE_PGF = true
+input_folder = "/home/matthew/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
+folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/bis_with_pgf/x0_smps_100/"
+V_cm3_sample = 200.0
+
+SAVE_PGF = false
 
 println("creating path: ", folder)
 mkpath(folder);
 
 # time
-t_samp = dropdims(3600.0*Matrix{Cdouble}(CSV.read(string(input_folder,"time_hour.csv"); delim=",", header=false)),dims=1);
+df_t_samp = CSV.File(string(input_folder,"time_hour.csv"); header=false,ntasks=1)|> DataFrame
+t_samp = 3600.0dropdims(Matrix{Cdouble}(df_t_samp),dims=1);
 Tmax = length(t_samp)
 DT = 1
 idx_T = 1:DT:Tmax # 1:length(t_samp) # 600:length(t_samp)
@@ -146,7 +120,8 @@ dt = t_samp[2]-t_samp[1]
 
 
 # diameters
-diameter_data = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"diameter.csv"); delim=",", header=false)),dims=1);
+df_diameter_data = CSV.File(string(input_folder,"diameter.csv"); header=false,ntasks=1)|> DataFrame
+diameter_data = dropdims(Matrix{Cdouble}(df_diameter_data),dims=1);
 idx_s = findfirst(diameter_data.>=8.5*1.0e-9)
 if idx_s!=nothing
     diameter_data = diameter_data[1:idx_s];
@@ -155,7 +130,8 @@ volume_data = (pi/6.0)*(diameter_data.^3)
 cst_v_data = mean(volume_data[2:end]./volume_data[1:end-1])
 
 # particle concentration
-y_all = Matrix{Cdouble}(Matrix{Cdouble}(CSV.read(string(input_folder,"particle_conc_with_noise.csv"); delim=",", header=false))');
+df_y_all = CSV.File(string(input_folder,"particle_conc_with_noise.csv"); header=false)|> DataFrame
+y_all = Matrix{Cdouble}(Matrix{Cdouble}(df_y_all)');
 if idx_s!=nothing
     y_all = y_all[1:idx_s,idx_T];
 else
@@ -168,26 +144,23 @@ displayLogData2D(1,t_samp/3600.0,diameter_data,y_all,max(0.01max_pc,min_pc),max_
 
 
 
-if LOAD_MEAS_MOD
-    # the measurement model
-    H_avg = convert(Matrix{Cdouble},CSV.read(string(input_folder,"H_avg_more.csv"); header=false));
-    min_H,max_H = extrema(H_avg)
-    s = @sprintf "channel efficiency (%1.2e,%1.2e)" min_H max_H
-    displayLogData2D(1111,1.0e9diameter_data,1.0e9diameter_data,H_avg,max(min_H,0.001max_H),max_H,_title=s,_colorbar_label="channel efficiency []")
-    xscale("log")
-    xlabel("diameter [nm]")
-    ylabel("channel center [nm]")
-    savefig(string(folder,"H_avg.png"))
-    savefig(string(folder,"H_avg.pdf"))
-    if SAVE_PGF
-        savefig(string(folder,"H_avg.pgf"))
-    end
-else
-    H_avg = diagm(ones(length(diameter_data)))
+
+# the measurement model
+df_H_avg = CSV.File(string(input_folder,"H_avg.csv"); header=false)|> DataFrame
+H_avg = Matrix{Cdouble}(df_H_avg);
+min_H,max_H = extrema(H_avg)
+s = @sprintf "channel efficiency (%1.2e,%1.2e)" min_H max_H
+displayLogData2D(1111,1.0e9diameter_data,1.0e9diameter_data,H_avg,max(min_H,0.001max_H),max_H,_title=s,_colorbar_label="channel efficiency []")
+xscale("log")
+xlabel("diameter [nm]")
+ylabel("channel center [nm]")
+savefig(string(folder,"H_avg.png"))
+savefig(string(folder,"H_avg.pdf"))
+if SAVE_PGF
+    savefig(string(folder,"H_avg.pgf"))
 end
 
 
-GT_loaded = true #WARNING need more memory for this!!!
 if GT_loaded
     tp                    = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"time_hour_parameter.csv"); delim=",", header=false)),dims=1);
     dp                    = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"diameter_parameter.csv"); delim=",", header=false)),dims=1);
@@ -286,8 +259,10 @@ delta = diameter*(sqrt(cst_r)-1.0/sqrt(cst_r));
 # the identity matrix
 Id=Matrix{Cdouble}(I,model_dim,model_dim);
 
-
-
+# compute the wall loos rate (assumed to be a known parameter of the chamber model)
+if (!GT_loaded)
+    wall_rate_expected = (1.31e-12*ones(Cdouble,nbin)./(d0*cst_r.^(collect(0:nbin-1))))
+end
 
 
 
