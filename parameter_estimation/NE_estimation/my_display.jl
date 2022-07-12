@@ -71,6 +71,11 @@ if GT_loaded
     minPSD = max(0.001maxPSD,minimum(PSD_simu))
     maxPSDlog = maximum(1.0e9*PSD_simu.*delta_p/log10(cst_r_p))
     minPSDlog = max(0.001maxPSDlog,minimum(1.0e9PSD_simu.*delta_p/log10(cst_r_p)))
+else
+    maxPSD = maximum(1.0e-9x0*x_smo_all[R_psd,:]./delta) # maximum(1.0e-9y_all./delta) 
+    minPSD = max(0.001*maxPSD,1.0e-9minimum(1.0e-9x0*x_smo_all[R_psd,:]./delta))
+    maxPSDlog = x0*maximum(x_smo_all[R_psd,:]./log10(cst_r)) # maximum(y_all./log10(cst_r))
+    minPSDlog = max(0.001*maxPSDlog,minimum(x0*x_smo_all[R_psd,:]./log10(cst_r)))
 end
 
 # displayPSD(159,t_samp/3600.0,diameter,x0*x_fil_all[R_psd,:])
@@ -251,7 +256,7 @@ fill_between(t_samp/3600.0,GR0*percentiles_cond_smo[:,1],GR0*percentiles_cond_sm
 # plot(t_samp/3600.0,GR0*percentiles_cond_smo[:,1])
 # plot(t_samp/3600.0,GR0*percentiles_cond_smo[:,2])
 if GT_loaded
-    plot(tp,condensation_rate_all[1,:],color=:green)
+    plot(tp[idx_t],condensation_rate_all[1,idx_t],color=:green)
 end
 # s = @sprintf "evolution of the growth rate percentiles"
 s = @sprintf "condensation growth rate"
@@ -262,7 +267,11 @@ grid(true,which="major",ls="-")
 grid(true,which="minor",ls="-",alpha=0.5)
 xlim(t_samp[1]/3600.0,t_samp[end]/3600.0)
 ylim(-0.1e-12,40*2.78e-13)
-legend(["filter","smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter","smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter","smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"evolution_cond_percentiles_smo.png"))
 savefig(string(folder,"evolution_cond_percentiles_smo.pdf"))
 if SAVE_PGF
@@ -296,7 +305,11 @@ for k in 1:length(idx_time)
     ylim(8.0e-6,1.0e-3)
     # legend(["smoother estimation","ground truth","uncertainties"])
     # legend(["smoother estimation","smoother: 15\$^{th}\$ percentile","smoother: 85\$^{th}\$ percentile", "expectation"])
-    legend(["filter","smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter","smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    else
+        legend(["filter","smoother","EKF uncertainty","FIKS uncertainty"])
+    end
     s = @sprintf "loss_percentiles_wrt_diameter_time_%i_smo.png" idx_time[k]
     savefig(string(folder,s))
     s = @sprintf "loss_percentiles_wrt_diameter_time_%i_smo.pdf" idx_time[k]
@@ -319,7 +332,8 @@ fill_between(t_samp/3600.0,J0*percentiles_nuc_smo[:,1],J0*percentiles_nuc_smo[:,
 # plot(t_samp/3600.0,J0*percentiles_nuc_smo[:,1])
 # plot(t_samp/3600.0,J0*percentiles_nuc_smo[:,2])
 if GT_loaded
-    plot(tp,nucleation_rate_all,color=:green)
+    plot(tp[idx_t],nucleation_rate_all[idx_t],color=:green)
+    plot(tp[idx_t],1.0e9condensation_rate_all[idx_d[5],idx_t].*PSD_simu[idx_d[5],idx_t],color=:darkgreen)
 end
 s = @sprintf "nucleation rate"
 title(s)
@@ -331,7 +345,11 @@ grid(true,which="minor",ls="-",alpha=0.5)
 xlim(t_samp[1]/3600.0,t_samp[end]/3600.0)
 ylim(-0.02,0.35)
 # legend(["smoother estimation","ground truth","uncertainties"])
-legend(["filter","smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter","smoother","GT","GT at 14.1nm","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter","smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"evolution_nuc_percentiles_smo.png"))
 savefig(string(folder,"evolution_nuc_percentiles_smo.pdf"))
 if SAVE_PGF
@@ -383,7 +401,9 @@ idx_ttt_simu = 12001 # for FULL_SAVE simulated data
     semilogx(1.0e9diameter,1.0e-9x0*x_fil_all[R_psd,idx_ttt]./delta)
     semilogx(1.0e9diameter,1.0e-9x0*x_smo_all[R_psd,idx_ttt]./delta)
     # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-    semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    if GT_loaded
+        semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    end
     x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -399,7 +419,11 @@ idx_ttt_simu = 12001 # for FULL_SAVE simulated data
     # ylabel("density [# cm\$^{-3}\$ nm\$^{-1}\$]")
     ylabel("density [cm\$^{-3}\$ nm\$^{-1}\$]")
     title("size distribution at time: 10h")
-    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    else
+        legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+    end
     savefig(string(folder,"size_density_time_10h_smo.png"))
     savefig(string(folder,"size_density_time_10h_smo.pdf"))
     if SAVE_PGF
@@ -413,7 +437,9 @@ figure()
 semilogx(1.0e9diameter,x0*x_fil_all[R_psd,idx_ttt]./log10(cst_r))
 semilogx(1.0e9diameter,x0*x_smo_all[R_psd,idx_ttt]./log10(cst_r))
 # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+if GT_loaded
+    semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+end
 x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -431,7 +457,11 @@ xlabel("diameter [nm]")
 # ylabel("density [# cm\$^{-3}\$ log\$_{10}(\\frac{d_i}{d_{i-1}})^{-1}\$]")
 ylabel("density [\$\\frac{\\mathrm{d} N}{\\mathrm{d} \\log_{10}(D_p)}\$]")
 title("size distribution at time: 10h")
-legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"log_size_density_time_10h_smo.png"))
 savefig(string(folder,"log_size_density_time_10h_smo.pdf"))
 if SAVE_PGF
@@ -456,7 +486,9 @@ idx_ttt_simu = 2401 # for FULL_SAVE simulated data
     semilogx(1.0e9diameter,1.0e-9x0*x_fil_all[R_psd,idx_ttt]./delta)
     semilogx(1.0e9diameter,1.0e-9x0*x_smo_all[R_psd,idx_ttt]./delta)
     # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-    semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    if GT_loaded
+        semilogx(1.0e9dp,PSD_simu[:,idx_ttt_simu])
+    end
     x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
     x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -472,7 +504,11 @@ idx_ttt_simu = 2401 # for FULL_SAVE simulated data
     # ylabel("density [# cm\$^{-3}\$ nm\$^{-1}\$]")
     ylabel("density [cm\$^{-3}\$ nm\$^{-1}\$]")
     title("size distribution at time: 2h")
-    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    if GT_loaded
+        legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+    else
+        legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+    end
     savefig(string(folder,"size_density_time_2h_smo.png"))
     savefig(string(folder,"size_density_time_2h_smo.pdf"))
     if SAVE_PGF
@@ -489,7 +525,9 @@ figure()
 semilogx(1.0e9diameter,x0*x_fil_all[R_psd,idx_ttt]./log10(cst_r))
 semilogx(1.0e9diameter,x0*x_smo_all[R_psd,idx_ttt]./log10(cst_r))
 # semilogx(1.0e9diameter,1.0e-9y_all[:,idx_ttt]./delta)
-semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+if GT_loaded
+    semilogx(1.0e9dp,1.0e9PSD_simu[:,idx_ttt_simu].*delta_p/log10(cst_r_p))
+end
 x_pre_up = x0*x_pre_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_pre_do = x0*x_pre_all[R_psd,idx_ttt] - x0*sqrt.(diag(o_pre_all[R_psd,R_psd,idx_ttt]))
 x_fil_up = x0*x_fil_all[R_psd,idx_ttt] + x0*sqrt.(diag(o_fil_all[R_psd,R_psd,idx_ttt]))
@@ -507,7 +545,11 @@ xlabel("diameter [nm]")
 # ylabel("density [# cm\$^{-3}\$ log\$_{10}(\\frac{d_i}{d_{i-1}})^{-1}\$]")
 ylabel("density [\$\\frac{\\mathrm{d} N}{\\mathrm{d} \\log_{10}(D_p)}\$]")
 title("size distribution at time: 2h")
-legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+if GT_loaded
+    legend(["filter", "smoother","ground truth","EKF uncertainty","FIKS uncertainty"])
+else
+    legend(["filter", "smoother","EKF uncertainty","FIKS uncertainty"])
+end
 savefig(string(folder,"log_size_density_time_2h_smo.png"))
 savefig(string(folder,"log_size_density_time_2h_smo.pdf"))
 if SAVE_PGF

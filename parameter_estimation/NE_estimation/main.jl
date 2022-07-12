@@ -33,11 +33,16 @@ using Printf
 using LinearAlgebra
 using Statistics
 
+# NOTE: you need to run the data_simulation/nucleation_event/main.jl script to simulate the Ground Truth
+
 ##################################################
 ###    read data and init some variabeles      ###
 ##################################################
 COAGULATION = true;
-COAGULATION_GAIN = true
+COAGULATION_GAIN = (true & COAGULATION)
+
+# loading the ground truth or not
+GT_loaded = false #WARNING need more memory for this!!!
 
 
 # data with a different measurement model
@@ -102,27 +107,6 @@ end
 close("all")
 
 
-
-# load the expected values of the parameters
-GT_loaded = true #WARNING need more memory for this!!!
-if GT_loaded
-    df_tp                 = CSV.File(string(input_folder,"time_hour_parameter.csv"); delim=",", header=false) |> DataFrame
-    tp                    = dropdims(Matrix{Cdouble}(df_tp),dims=1);
-    df_dp                 = CSV.File(string(input_folder,"diameter_parameter.csv"); delim=",", header=false) |> DataFrame
-    dp                    = dropdims(Matrix{Cdouble}(df_dp),dims=1);
-    df_condensation_rate  = CSV.File(string(input_folder,"condensation_rate.csv"); delim=",", header=false) |> DataFrame
-    condensation_rate_all = Matrix{Cdouble}(Matrix{Cdouble}(df_condensation_rate)');
-    df_nucleation_rate    = CSV.File(string(input_folder,"nucleation_rate.csv"); delim=",", header=false) |> DataFrame
-    nucleation_rate_all   = dropdims(Matrix{Cdouble}(df_nucleation_rate),dims=1);
-    df_wall_rate          = CSV.File(string(input_folder,"wall_rate_constant.csv"); delim=",", header=false) |> DataFrame
-    wall_rate_expected    = dropdims(Matrix{Cdouble}(df_wall_rate),dims=1);
-    df_PSD_simu           = CSV.File(string(input_folder,"simulated_psd.csv"); delim=",", header=false) |> DataFrame
-    PSD_simu              = Matrix{Cdouble}(Matrix{Cdouble}(df_PSD_simu)');
-    cst_r_p = mean(dp[2:end]./dp[1:end-1])
-    delta_p = dp.*(sqrt(cst_r_p)-1.0/sqrt(cst_r_p))
-end
-
-
 # set the dimensions: try to set a fixed state size
 nbin  = length(diameter_data)                              # Number of particle size bins
 model_dim = nbin+2+nbin+2  # +4                      # [],        dimension of the model
@@ -138,6 +122,35 @@ volume = Array{Cdouble,1}(undef,nbin);
 volume = v0*(cst_v.^(collect(0:nbin-1)));
 diameter = ((6.0/pi)*volume).^(1.0/3.0);
 delta = diameter*(sqrt(cst_r)-1.0/sqrt(cst_r));
+
+
+# load the expected values of the parameters
+if GT_loaded
+    df_tp                 = CSV.File(string(input_folder,"time_hour_parameter.csv"); delim=",", header=false) |> DataFrame
+    tp                    = dropdims(Matrix{Cdouble}(df_tp),dims=1);
+    df_dp                 = CSV.File(string(input_folder,"diameter_parameter.csv"); delim=",", header=false) |> DataFrame
+    dp                    = dropdims(Matrix{Cdouble}(df_dp),dims=1);
+    df_condensation_rate  = CSV.File(string(input_folder,"condensation_rate.csv"); delim=",", header=false) |> DataFrame
+    condensation_rate_all = Matrix{Cdouble}(Matrix{Cdouble}(df_condensation_rate)');
+    df_nucleation_rate    = CSV.File(string(input_folder,"nucleation_rate.csv"); delim=",", header=false) |> DataFrame
+    nucleation_rate_all   = dropdims(Matrix{Cdouble}(df_nucleation_rate),dims=1);
+    df_wall_rate          = CSV.File(string(input_folder,"wall_rate_constant.csv"); delim=",", header=false) |> DataFrame
+    wall_rate_expected    = dropdims(Matrix{Cdouble}(df_wall_rate),dims=1);
+    df_PSD_simu           = CSV.File(string(input_folder,"simulated_psd.csv"); delim=",", header=false) |> DataFrame
+    PSD_simu              = Matrix{Cdouble}(Matrix{Cdouble}(df_PSD_simu)');
+    cst_r_p = mean(dp[2:end]./dp[1:end-1])
+    delta_p = dp.*(sqrt(cst_r_p)-1.0/sqrt(cst_r_p))
+    idx_t = Array{Int64}(undef,n_samp)
+    for i in 1:n_samp
+        idx_t[i] = findfirst((tp*3600.0).>=t_samp[i])
+    end
+    idx_d = Array{Int64}(undef,length(diameter_data))
+    for i in 1:length(diameter_data)
+        idx_d[i] = findfirst(dp.>=diameter_data[i])
+    end
+end
+
+
 
 # the identity matrix
 Id=Matrix{Cdouble}(I,model_dim,model_dim);
