@@ -407,6 +407,7 @@ plot(t_samp/3600.0,J0*Nucleation_rate(x_fil_all[R_nuc_init,:]))
 plot(t_samp/3600.0,J0*Nucleation_rate(x_smo_all[R_nuc_init,:]))
 if GT_loaded
     plot(tp,nucleation_rate_all,color=:green)
+    plot(tp,1.0e9condensation_rate_all[1,:].*PSD_simu[1,:],color=:darkgreen)
 end
 fill_between(t_samp/3600.0,J0*percentiles_nuc_fil[:,1],J0*percentiles_nuc_fil[:,2],alpha=0.5,color=:blue)
 fill_between(t_samp/3600.0,J0*percentiles_nuc_smo[:,1],J0*percentiles_nuc_smo[:,2],alpha=0.5,color=:orange)

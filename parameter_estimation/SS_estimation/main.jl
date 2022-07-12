@@ -24,7 +24,7 @@
 
 using PyPlot
 # set the font in the plots
-rc("font",family="serif",serif="Computer Modern Roman")
+# rc("font",family="serif",serif="Computer Modern Roman")
 rc("text", usetex=true)
 using myPlot
 using CSV
@@ -37,13 +37,16 @@ using DataFrames
 ###    read data and init some variables       ###
 ##################################################
 
+# NOTE: you need to run the data_simulation/steady_state/main.jl script to simulate the Ground Truth
+
 # used for the evolution model
 COAGULATION = true;
 COAGULATION_GAIN = (true & COAGULATION)
 
-# data with a different measurement model
-LOAD_MEAS_MOD = true
+# loading the ground truth or not
 GT_loaded = false #WARNING need more memory for this!!!
+
+# data with a different measurement model
 # input_folder = "/home/user_name/Data/steady_state_SMPS3936/no_coagulation/singlecharge/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/"
 # folder = "no_coagulation/singlecharge/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/"
 # V_cm3_sample = 2000.0
@@ -87,20 +90,22 @@ GT_loaded = false #WARNING need more memory for this!!!
 # input_folder = "/home/user_name/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/"
 # folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_2000_cm3/boundary/wall/120s/bis/"
 # V_cm3_sample = 2000.0
-input_folder = "/home/user_name/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
-folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/bis_with_pgf/x0_smps_100/"
-V_cm3_sample = 200.0
+# input_folder = "/home/user_name/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
+# folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/bis_with_pgf/x0_smps_100/"
+# V_cm3_sample = 200.0
 # input_folder = "/home/user_name/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_20_cm3/boundary/wall/120s/"
 # folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_20_cm3/boundary/wall/120s/"
 # V_cm3_sample = 20.0
 # input_folder = "/home/user_name/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_2_cm3/boundary/wall/120s/"
 # folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_2_cm3/boundary/wall/120s/bis_with_pgf/x0_smps_100/"
 # V_cm3_sample = 2.0
+
+
 # ##WARNING: defining a threshold number concentration to account for the measurement model errors, the stochasticity not steming from the counting process
 x0_dmps = 100.0 # 100.0 # 1000.0 # 10000.0 # for the case of bad error modelling
 
-input_folder = "/home/matthew/Data/steady_state_SMPS3936/coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
-folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/bis_with_pgf/x0_smps_100/"
+input_folder = "../../data_simulation/steady_state/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
+folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/x0_smps_100/"
 V_cm3_sample = 200.0
 
 SAVE_PGF = false
@@ -160,14 +165,39 @@ if SAVE_PGF
     savefig(string(folder,"H_avg.pgf"))
 end
 
+# set the dimensions: try to set a fixed state size
+nbin  = length(diameter_data)                              # Number of particle size bins
+model_dim = nbin+2nbin+nbin+2                              # dimension of the model
+meas_dim  = length(diameter_data)                          # dimension of the observation space
+d0 = diameter_data[1]
+v0 = (pi/6.0)*(d0^3)
 
+# compute the diameter, volume and constant ratio for the model state
+cst_v = (volume_data[end]/v0)^(1.0/(nbin-1.0))
+cst_r = cst_v^(1.0/3.0)
+r_vec = cst_r.^(collect(0:nbin-1));
+volume = Array{Cdouble}(undef,nbin);
+volume = v0*(cst_v.^(collect(0:nbin-1)));
+diameter = ((6.0/pi)*volume).^(1.0/3.0);
+delta = diameter*(sqrt(cst_r)-1.0/sqrt(cst_r));
+
+
+
+# NOTE: you need to run the data_simulation/steady_state/main.jl script to simulate the Ground Truth
 if GT_loaded
-    tp                    = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"time_hour_parameter.csv"); delim=",", header=false)),dims=1);
-    dp                    = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"diameter_parameter.csv"); delim=",", header=false)),dims=1);
-    condensation_rate_all = Matrix{Cdouble}(Matrix{Cdouble}(CSV.read(string(input_folder,"condensation_rate.csv"); delim=",", header=false))');
-    nucleation_rate_all   = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"nucleation_rate.csv"); delim=",", header=false)),dims=1);
-    wall_rate_expected    = dropdims(Matrix{Cdouble}(CSV.read(string(input_folder,"wall_rate_constant.csv"); delim=",", header=false)),dims=1);
-    PSD_simu              = Matrix{Cdouble}(Matrix{Cdouble}(CSV.read(string(input_folder,"simulated_psd.csv"); delim=",", header=false))');
+    df_tp                 = CSV.File(string(input_folder,"time_hour_parameter.csv"); header=false,ntasks=1)|> DataFrame
+    tp                    = dropdims(Matrix{Cdouble}(df_tp),dims=1);
+    df_dp                 = CSV.File(string(input_folder,"diameter_parameter.csv"); header=false,ntasks=1)|> DataFrame
+    dp                    = dropdims(Matrix{Cdouble}(df_dp),dims=1);
+    df_G                  = CSV.File(string(input_folder,"condensation_rate.csv"); header=false,ntasks=1)|> DataFrame
+    condensation_rate_all = Matrix{Cdouble}(Matrix{Cdouble}(df_G)');
+    df_J                  = CSV.File(string(input_folder,"nucleation_rate.csv"); header=false,ntasks=1)|> DataFrame
+    nucleation_rate_all   = dropdims(Matrix{Cdouble}(df_J),dims=1);
+    df_λ                  = CSV.File(string(input_folder,"wall_rate_constant.csv"); header=false,ntasks=1)|> DataFrame
+    wall_rate_expected    = dropdims(Matrix{Cdouble}(df_λ),dims=1);
+    df_psd                = CSV.File(string(input_folder,"simulated_psd.csv"); header=false,ntasks=1)|> DataFrame
+    PSD_simu              = Matrix{Cdouble}(Matrix{Cdouble}(df_psd)');
+
     # find sampling indices
     idx_t = Array{Int64}(undef,n_samp)
     for i in 1:n_samp
@@ -175,7 +205,7 @@ if GT_loaded
     end
     idx_d = Array{Int64}(undef,length(diameter_data))
     for i in 1:length(diameter_data)
-        idx_d[i] = findfirst(dp.>=diameter_data[i])
+        idx_d[i] = findfirst(dp.>=diameter_data[i]/sqrt(cst_r)) # lower end of the simulation intervals
     end
     # brutally sample the parameters
     tp = tp[idx_t]
@@ -240,21 +270,6 @@ close("all")
 
 
 
-# set the dimensions: try to set a fixed state size
-nbin  = length(diameter_data)                              # Number of particle size bins
-model_dim = nbin+2nbin+nbin+2                              # dimension of the model
-meas_dim  = length(diameter_data)                          # dimension of the observation space
-d0 = diameter_data[1]
-v0 = (pi/6.0)*(d0^3)
-
-# compute the diameter, volume and constant ratio for the model state
-cst_v = (volume_data[end]/v0)^(1.0/(nbin-1.0))
-cst_r = cst_v^(1.0/3.0)
-r_vec = cst_r.^(collect(0:nbin-1));
-volume = Array{Cdouble}(undef,nbin);
-volume = v0*(cst_v.^(collect(0:nbin-1)));
-diameter = ((6.0/pi)*volume).^(1.0/3.0);
-delta = diameter*(sqrt(cst_r)-1.0/sqrt(cst_r));
 
 # the identity matrix
 Id=Matrix{Cdouble}(I,model_dim,model_dim);
