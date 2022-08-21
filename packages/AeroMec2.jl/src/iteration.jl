@@ -46,7 +46,8 @@ function iter!(dx_coa::Array{Cdouble,1},dx_con::Array{Cdouble,1},dx_nuc::Array{C
     end
     # condensation
     if ws.is_con
-        CondensationGrowth!(dx_con,ws,x,zeta)
+        # CondensationGrowth!(dx_con,ws,x,zeta)
+        CondensationGrowthAndEvap!(dx_con,ws,x,zeta)
     else
         fill!(dx_con,0.0)
     end

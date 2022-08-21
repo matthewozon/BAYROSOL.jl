@@ -64,7 +64,7 @@ using LinearAlgebra
 export coagulation!, coagulation_loss!, jacobian_coagulation!, jacobian_coagulation_loss!, coagulation_coefficient!, init_coagulation_loop_indices, init_coagulation_loop_indices! # this last one generates index and gain arrays for the full coagulation so that it runs faster
 
 # export the functions for the condensation
-export CondensationGrowth!, jacobian_condensation!
+export CondensationGrowth!, CondensationGrowthAndEvap!, jacobian_condensation!
 
 # the losses by wall deposition #LATER: all sorts of linear diagonal damping terms
 export WallDeposition!, jacobian_wall_deposition!, WallDepositionRate

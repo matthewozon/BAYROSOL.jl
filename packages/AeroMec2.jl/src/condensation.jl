@@ -39,6 +39,18 @@ function CondensationGrowth!(dx_cond::Array{Cdouble,1},ws::AeroSys,x::Array{Cdou
     # end
 end
 
+function CondensationGrowthAndEvap!(dx_cond::Array{Cdouble,1},ws::AeroSys,x::Array{Cdouble,1},zeta::Cdouble)
+    ws.GR = (ws.GR0*ws.t0/ws.d0)*zeta # dimensionless growth rate
+    # for a growth rate indenpend of the size
+    if (zeta>=0)
+        dx_cond[1] = -ws.GR*ws.scale_GR[1]*x[1]
+        dx_cond[2:end] = ws.GR*(ws.scale_GR[1:end-1].*ws.cst_r.*x[1:end-1] - ws.scale_GR[2:end].*x[2:end])
+    else
+        dx_cond[end] = ws.GR*ws.scale_GR[end]*x[end]
+        dx_cond[1:end-1] = ws.GR*(ws.scale_GR[1:end-1].*ws.cst_r.*x[1:end-1] - ws.scale_GR[2:end].*x[2:end])
+    end
+end
+
 function CondensationGrowth!(dx_cond::Array{Cdouble,1},ws::AeroSys,x::Array{Cdouble,1},zeta::Array{Cdouble,1})
     GR_array = (ws.GR0*ws.t0/ws.d0)*zeta[:] # dimensionless growth rate
     ws.GR = GR_array[1]
@@ -50,6 +62,21 @@ function CondensationGrowth!(dx_cond::Array{Cdouble,1},ws::AeroSys,x::Array{Cdou
     # else # cst_r = 1.0 if logS==false
     #     dx_cond[2:end] = GR_array[1:end-1].*ws.scale_GR[1:end-1].*x[1:end-1] - GR_array[2:end].*ws.scale_GR[2:end].*x[2:end]
     # end
+end
+
+function CondensationGrowthAndEvap!(dx_cond::Array{Cdouble,1},ws::AeroSys,x::Array{Cdouble,1},zeta::Array{Cdouble,1})
+    GR_array = (ws.GR0*ws.t0/ws.d0)*zeta[:] # dimensionless growth rate
+    ws.GR = GR_array[1]
+    # positive growth rate (upwind)
+    idx_pos = (GR_array.>=0.0)
+    GR_pos = GR_array.*idx_pos;
+    dx_cond[1] = -GR_pos[1]*ws.scale_GR[1]*x[1]
+    dx_cond[2:end] = GR_pos[1:end-1].*ws.scale_GR[1:end-1].*ws.cst_r.*x[1:end-1] - GR_pos[2:end].*ws.scale_GR[2:end].*x[2:end]
+    # negative growth rate (backwards)
+    idx_neg = (GR_array.<0.0)
+    GR_neg = GR_array.*idx_neg;
+    dx_cond[end] = dx_cond[end] + GR_neg[end]*ws.scale_GR[end]*x[end]
+    dx_cond[1:end-1] = dx_cond[1:end-1] + GR_neg[1:end-1].*ws.scale_GR[1:end-1].*ws.cst_r.*x[1:end-1] - GR_neg[2:end].*ws.scale_GR[2:end].*x[2:end]
 end
 
 
