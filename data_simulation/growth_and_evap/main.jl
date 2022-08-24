@@ -58,7 +58,7 @@ load_X0  = dropdims(Array{Cdouble}(CSV.File(string(data_folder,"aerodist_initial
 load_cond_length = dropdims(Matrix{Cdouble}(CSV.File(string(data_folder,"cond_area.csv"); header=false) |> DataFrame),dims=1);
 load_diff_vapor  =  CSV.File(string(data_folder,"diff_vapor.csv"); header=false)[1];
 
-GR = load_diff_vapor.Column1[1]*load_cond_length./(load_dia.^2);
+GR = (1.0/16.0)*4.0*load_diff_vapor.Column1[1]*load_cond_length./(load_dia.^2);
 
 # coagulation coefficient
 df_coa = CSV.File(string(data_folder,"coag_kernel.csv"); header=false) |> DataFrame # I have no clue why the last column is interpreted as Strings instead of Float64
@@ -94,7 +94,7 @@ gamma_c = 1.0                          # unit conversion of the wall loss rate
 GR_c = 2.777777777777778e-13           # unit conversion of the condensation growth rate 
 ws = AeroSys(d, gamma_c = gamma_c, GR_c = GR_c);
 ws.is_los = true # false         # linear loss mechanism
-ws.is_coa = false # true         # coagulation mechanism# #WARNING: it can be long
+ws.is_coa = true # true         # coagulation mechanism# #WARNING: it can be long
 ws.is_con = true                 # condensation growth mechanism
 ws.is_nuc = false                 # nucleation mechanism
 ws.is_coa_gain = false # true    # the default is false when the caogulation mechanism is active, you must explicitly activate the coagulation gain if you want both the loss and gain mechanisms to be computed #WARNING: it can be very long in the computation and the initialization of the indices
