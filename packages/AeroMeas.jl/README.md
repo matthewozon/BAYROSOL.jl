@@ -15,7 +15,7 @@ Note that the losses are not accounted for --- they could easily be added though
 ## Dependencies
 ### Install
 
-The package dependencies are listed in the file [Project.toml](https://github.com/matthewozon/BAYROSOL.jl/blob/master/packages/AeroMec2.jl/Project.toml).
+The package dependencies are listed in the file [Project.toml](https://github.com/matthewozon/BAYROSOL.jl/blob/master/packages/AeroMeas.jl/Project.toml).
 The installation of the package can be done through the package manager (`import Pkg`) as follows:
 
 `Pkg.add(url="https://github.com/matthewozon/BAYROSOL.jl.git",rev="master",subdir="packages/AeroMeas.jl")`
