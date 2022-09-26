@@ -13,6 +13,15 @@ Note that the losses are not accounted for --- they could easily be added though
 
 # Dependencies and end-user functions
 ## Dependencies
+### Install
+
+The package dependencies are listed in the file [Project.toml](https://github.com/matthewozon/BAYROSOL.jl/blob/master/packages/AeroMec2.jl/Project.toml).
+The installation of the package can be done through the package manager (`import Pkg`) as follows:
+
+`Pkg.add(url="https://github.com/matthewozon/BAYROSOL.jl.git",rev="master",subdir="packages/AeroMeas.jl")`
+
+### Alternative
+If the install failed, you can download the package [AeroMeas](https://github.com/matthewozon/BAYROSOL.jl/edit/master/packages/AeroMeas.jl) and install one by one the dependencies.
 The module depends on several other packages that can be installed by running the the following commands in the REPL: "import Pkg; Pkg.add("toto")" where "toto" should be substitute by the name of the package to install. The packages are:
 - [Statistics](https://docs.julialang.org/en/v1/stdlib/Statistics/): is part of the Julia standard library and implements some usual statistical functions, e.g. var.
 - [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/): is also part of the standard library of Julia; it implements most linear algebra function and wraps function from the optimized BLAS and LAPACK libraries.

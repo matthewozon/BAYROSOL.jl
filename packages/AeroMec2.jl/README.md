@@ -29,7 +29,7 @@ The installation of the package can be done through the package manager (`import
 `Pkg.add(url="https://github.com/matthewozon/BAYROSOL.jl.git",rev="master",subdir="packages/AeroMec2.jl")`
 
 ### Alternative
-Download the package [AeroMec2](https://github.com/matthewozon/BAYROSOL.jl/edit/master/packages/AeroMec2.jl) and install the dependencies.
+If the install failed, you can download the package [AeroMec2](https://github.com/matthewozon/BAYROSOL.jl/edit/master/packages/AeroMec2.jl) and install the dependencies.
 The module depends on two other packages that can be installed by running the the following commands in the REPL: "import Pkg; Pkg.add("toto")" where "toto" should be the name of the package to install. The packages are:
 - [Statistics](https://docs.julialang.org/en/v1/stdlib/Statistics/): is part of the Julia standard library and implements some usual statistical functions, e.g. var.
 - [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/): is also part of the standard library of Julia; it implements most linear algebra function and wraps function from the optimized BLAS and LAPACK libraries.
