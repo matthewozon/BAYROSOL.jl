@@ -6,7 +6,7 @@
 The [EKF.jl](packages/EKF.jl) package offers a framework for the Kalman filter and Fixed Interval Kalman Smoother in their linear and extended forms. It is used for estimating the state of observed time varying system along with their covariances/uncertainty ranges.
 
 ### Aerosol mechanisms: GDE
-A homogeneous-aerosol-system time evolution may be described by the GDE for aerosols. The package [AeroMec2.jl](package/AeroMec2.jl) implements a time-and-size discrete solver of the GDE in terms of concentrations; it supports the following mechanisms:
+A homogeneous-aerosol-system time evolution may be described by the GDE for aerosols. The package [AeroMec2.jl](packages/AeroMec2.jl) implements a time-and-size discrete solver of the GDE in terms of concentrations; it supports the following mechanisms:
 - growth/shrinkage by condensation/evaporation (the advection term)
 - nucleation or formation of new small particles at the smaller end of the size discretization spectrum (boundary condition)
 - linear losses, e.g. wall or dilution losses (dampening term that is proportional to the size density or concentration)
