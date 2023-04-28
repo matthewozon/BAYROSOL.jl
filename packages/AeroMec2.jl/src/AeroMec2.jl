@@ -59,6 +59,7 @@ module AeroMec2
 
 using Statistics
 using LinearAlgebra
+using Unitful
 
 # export the functions that implement the coagulation mechanism and its jacobian (w.r.t. the number concentration)
 export coagulation!, coagulation_loss!, jacobian_coagulation!, jacobian_coagulation_loss!, coagulation_coefficient!, init_coagulation_loop_indices, init_coagulation_loop_indices! # this last one generates index and gain arrays for the full coagulation so that it runs faster

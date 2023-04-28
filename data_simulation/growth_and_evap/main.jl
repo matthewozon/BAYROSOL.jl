@@ -58,7 +58,10 @@ load_X0  = dropdims(Array{Cdouble}(CSV.File(string(data_folder,"aerodist_initial
 load_cond_length = dropdims(Matrix{Cdouble}(CSV.File(string(data_folder,"cond_area.csv"); header=false) |> DataFrame),dims=1);
 load_diff_vapor  =  CSV.File(string(data_folder,"diff_vapor.csv"); header=false)[1];
 
-GR = (1.0/16.0)*4.0*load_diff_vapor.Column1[1]*load_cond_length./(load_dia.^2);
+GR = 2.0*(1.0/16.0)*4.0*load_diff_vapor.Column1[1]*load_cond_length./(load_dia.^2);
+GR = GR.*sqrt.(GR/GR[1])
+GR = GR.*sqrt.(GR/GR[1])
+GR = GR.*sqrt.(GR/GR[1])
 
 # coagulation coefficient
 df_coa = CSV.File(string(data_folder,"coag_kernel.csv"); header=false) |> DataFrame # I have no clue why the last column is interpreted as Strings instead of Float64
@@ -70,7 +73,7 @@ end
 load_coa = Matrix{Cdouble}(df_coa);
 
 # wall loss rate
-load_wal  = dropdims(Array{Cdouble}(CSV.File(string(data_folder,"wallrate_beta.csv"); header=false) |> DataFrame),dims=1);
+load_wal  = dropdims(Array{Cdouble}(CSV.File(string(data_folder,"wallrate_beta.csv"); header=false) |> DataFrame),dims=1) .+ 2.0e-5;
 
 
 ###############################################################
@@ -97,7 +100,7 @@ ws.is_los = true # false         # linear loss mechanism
 ws.is_coa = true # true         # coagulation mechanism# #WARNING: it can be long
 ws.is_con = true                 # condensation growth mechanism
 ws.is_nuc = false                 # nucleation mechanism
-ws.is_coa_gain = false # true    # the default is false when the caogulation mechanism is active, you must explicitly activate the coagulation gain if you want both the loss and gain mechanisms to be computed #WARNING: it can be very long in the computation and the initialization of the indices
+ws.is_coa_gain = true # true    # the default is false when the caogulation mechanism is active, you must explicitly activate the coagulation gain if you want both the loss and gain mechanisms to be computed #WARNING: it can be very long in the computation and the initialization of the indices
 if ws.is_coa                     # if the coagulation mechanism is activated, it some more inits are needed (computing the caogulation coefficients and some computation indices to speed up the gain mechanism)
     if true # not computing the coefficient, just plug them in the AeroSys object
         ws.beta[:,:] = 1.0e0load_coa';
@@ -147,7 +150,7 @@ end
 ##
 
 # simulated concentrations
-PSDlog = X./log10(cst_r);
+PSDlog = X # ./log10(cst_r);
 displayLogData2D(91,load_tim/3600.0,d,PSDlog,max(0.001maximum(PSDlog),minimum(PSDlog)),maximum(PSDlog),_colorbar_label="log distribution \$\\frac{dN}{d\\log_{10}D_p}\$ [\$\\log \\#\$ cm\$^{-3}\$]")
 tight_layout(pad=1.0, w_pad=0.2, h_pad=0.2)
 if SAVE_FIG

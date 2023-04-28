@@ -119,3 +119,45 @@ function discretization_err(dt::Cdouble,n_deriv::Array{Cdouble,1},g_star::Array{
     discretization_error = 0.5*(((sqrt(cst_r)-1)^2)/(cst_r-1.0))*(n_deriv.*g_star).*delta;
     dt*[abs(discretization_error[2]) + (1.0/cst_r)*abs(discretization_error[1]); abs.(discretization_error[2:end]) + (1.0/cst_r)*abs.(discretization_error[1:end-1])];
 end
+
+
+"""
+    F_unit()
+
+    computes and returns
+    TODO
+"""
+function F_unit!(dx_coa::Array{Cdouble,1},dx_con::Array{Cdouble,1},dx_nuc::Array{Cdouble,1},dx_los::Array{Cdouble,1},ws::AeroSys,x::Array{Cdouble,1},zeta::Union{Cdouble,Array{Cdouble,1}},j::Cdouble,xi::Array{Cdouble,1})
+    # coagulation
+    if ws.is_coa
+        if ws.is_coa_gain
+            coagulation!(dx_coa,ws,x)
+        else
+            coagulation_loss!(dx_coa,ws,x)
+        end
+    else
+        fill!(dx_coa,0.0)
+    end
+    # condensation
+    if ws.is_con
+        # CondensationGrowth!(dx_con,ws,x,zeta)
+        CondensationGrowthAndEvap!(dx_con,ws,x,zeta)
+    else
+        fill!(dx_con,0.0)
+    end
+    # nucleation
+    if ws.is_nuc
+        Nucleation!(dx_nuc,ws,j)
+    else
+        fill!(dx_nuc,0.0)
+    end
+    # linear losses
+    if ws.is_los
+        WallDeposition!(dx_los,ws,x,xi)
+    else
+        fill!(dx_los,0.0)
+    end
+
+    # return the next size distribution
+    x + (dt/ws.t0)*(dx_coa+dx_con+dx_nuc+dx_los)
+end
