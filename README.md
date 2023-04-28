@@ -1,3 +1,5 @@
+[![AeroMeas CI](https://github.com/matthewozon/BAYROSOL.jl/actions/workflows/CI_AeroMeas.yml/badge.svg)](https://github.com/matthewozon/BAYROSOL.jl/actions/workflows/CI_AeroMeas.yml)
+
 # Retrieval of process rate parameters in the General Dynamic Equation (GDE) for aerosols using Bayesian state estimation
 
 ## Packages specifically developed
