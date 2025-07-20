@@ -1,0 +1,6 @@
+name = "utilsFun"
+uuid = "95c9b206-4a71-45de-9864-032f9eeb4b12"
+version = "0.0.1"
+
+[deps]
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
