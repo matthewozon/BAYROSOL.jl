@@ -105,7 +105,7 @@ GT_loaded = false #WARNING need more memory for this!!!
 x0_dmps = 100.0 # 100.0 # 1000.0 # 10000.0 # for the case of bad error modelling
 
 input_folder = "../../data_simulation/steady_state/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/"
-folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/x0_smps_100/"
+folder = "coagulation_loss_and_gain/multicharge/cloud_50_bins_J_5/steady_state_CPC_200_cm3/boundary/wall/120s/x0_smps_100/test_that_will_be_deleted/"
 V_cm3_sample = 200.0
 
 SAVE_PGF = false

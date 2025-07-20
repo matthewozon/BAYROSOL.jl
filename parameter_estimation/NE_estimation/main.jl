@@ -47,7 +47,7 @@ GT_loaded = false #WARNING need more memory for this!!!
 
 # data with a different measurement model
 input_folder = "../../data_simulation/nucleation_event/data/CPC_5_L_min/"
-folder = "coagulation_loss_and_gain/multicharge/CPC_5_L_min/bis_with_pgf/x0_smps_100/"
+folder = "coagulation_loss_and_gain/multicharge/CPC_5_L_min/bis_with_pgf/x0_smps_100/test_that_will_be_deleted/"
 V_cm3_sample = 90.0
 # input_folder = "../../data_simulation/nucleation_event/data/CPC_005_L_min/"
 # folder = "coagulation_loss_and_gain/multicharge/CPC_005_L_min/bis_with_pgf/x0_smps_100/"

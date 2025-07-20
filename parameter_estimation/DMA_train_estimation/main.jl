@@ -49,7 +49,7 @@ PLOT_MORE      = false
 PLOT_EVEN_MORE = false
 
 path_to_data = "/path/to/data/folder/" # "../../data/" # 
-
+path_to_data = "../../data/" # 
 
 ##################################################
 ###    read data and init some variables       ###
@@ -97,7 +97,7 @@ GT_loaded = (!FLAG_1952_02 & !FLAG_1802_01 & !FLAG_1906_03) #WARNING need more m
 
 
 # output folder: the results will be written at this location
-folder = "results/all_channels/"
+folder = "results/all_channels/test_that_will_be_deleted/"
 mkpath(folder)
 
 
