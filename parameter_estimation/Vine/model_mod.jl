@@ -106,7 +106,8 @@ gamma_nuc  = [sig_nuc 0.0; 0.0 0.0]
 ######################################################
 #                GDE uncertainty                     #
 ######################################################
-sig_mod_n = 2.0*0.005 .+ 0.0*dropdims(0.01*((dt/t0)*(maximum(y_all,dims=2)/x0)/(5.0*60.0/t0)) .+ 1.0e-5,dims=2)
+# sig_mod_n = 2.0*0.005 .+ 0.0*dropdims(0.01*((dt/t0)*(maximum(y_all,dims=2)/x0)/(5.0*60.0/t0)) .+ 1.0e-5,dims=2)
+sig_mod_n = 2.0*0.005*ones(Float64,nbin)
 gamma_psd = diagm(sig_mod_n.^2);
 
 
@@ -241,9 +242,21 @@ function EKF.update_jacobian!(x_fil_::Array{Cdouble,1},dt_::Cdouble,F_ev_::Array
     F_ev_
 end
 
+# function EKF.set_measurement_jacobian!(H_me_::Array{Cdouble,2})
+#     fill!(H_me_,0.0)
+#     H_me_[1:meas_dim,1:meas_dim] = H_avg
+#     H_me_
+# end
+
 function EKF.set_measurement_jacobian!(H_me_::Array{Cdouble,2})
     fill!(H_me_,0.0)
-    H_me_[1:meas_dim,1:meas_dim] = H_avg
+    if need_padding
+        if (mod(myWSKF.ikf,pad_factor+1)==1)
+            H_me_[1:meas_dim,1:nbin] = H_avg
+        end
+    else
+        H_me_[1:meas_dim,1:nbin] = H_avg
+    end
     H_me_
 end
 
